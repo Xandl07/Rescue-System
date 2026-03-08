@@ -1,0 +1,16 @@
+[Unit]
+Description=Linear Actuator Controller
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=rescue-pi
+WorkingDirectory=/home/rescue-pi/work/Rescue-System/hardware_ws
+ExecStart=/bin/bash -lc "source /opt/ros/jazzy/setup.bash && source install/setup.bash && ros2 run linear_actuator linear_actuator"
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+

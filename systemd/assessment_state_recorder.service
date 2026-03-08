@@ -1,0 +1,15 @@
+[Unit]
+Description=Rescuebox Assessment State Recorder
+After=network.target
+
+[Service]
+Type=simple
+User=rescue-pi
+Environment=RESCUEBOX_STATE_PATH=/home/rescue-pi/.rescuebox/state.json
+ExecStart=/bin/bash -lc 'source /opt/ros/jazzy/setup.bash && source /home/rescue-pi/work/Rescue-System/da_ws/install/setup.bash && ros2 run assessment_state_recorder assessment_state_recorder'
+
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

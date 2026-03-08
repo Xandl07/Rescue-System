@@ -1,0 +1,17 @@
+[Unit]
+Description=Rescuebox Stack (headless)
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=rescue-pi
+Group=rescue-pi
+WorkingDirectory=/home/rescue-pi
+Environment=APLAY_DEVICE=plughw:CARD=UACDemoV10,DEV=0
+ExecStart=/usr/local/bin/rescuebox_stack.sh
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

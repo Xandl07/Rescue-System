@@ -1,0 +1,33 @@
+# ROS2
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# PlatformIO
+.pio/
+.pioenvs/
+
+# VSCode
+.vscode/
+
+# temporary
+*.tmp
+*.swp
+
+# ROS
+.colcon/
+
+# Python virtual env
+venv/
+.venv/
+
+# CircuitPython
+boot_out.txt
+
+# Firmware
+*.uf2

@@ -1,0 +1,20 @@
+[Unit]
+Description=rosbridge websocket (system)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=rescue-pi
+Group=rescue-pi
+WorkingDirectory=/home/rescue-pi
+
+Environment=ROS_DOMAIN_ID=0
+Environment=ROS_LOCALHOST_ONLY=0
+
+ExecStart=/bin/bash -lc 'source /opt/ros/jazzy/setup.bash && source /home/rescue-pi/work/rescuebox_ws/install/setup.bash && exec ros2 launch rosbridge_server rosbridge_websocket_launch.xml'
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
