@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>RESCUE System</title>
+    <link rel="shortcut icon" href="icon/VIF.ico">
+    <link rel="stylesheet" href="css/autoware_web_controller_style.css" type="text/css">
+    <script src="https://cdn.jsdelivr.net/npm/roslib/build/roslib.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .tab-bar {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            background: #eee;
+            border: none;
+            font-size: 28px;
+            padding: 18px 48px;
+            border-radius: 16px 16px 0 0;
+            cursor: pointer;
+            color: #333;
+            font-weight: 600;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #fff;
+            color: #222;
+            box-shadow: 0 -2px 18px #ddd;
+        }
+
+        .button-grid {
+            display: flex;
+            gap: 28px;
+            justify-content: center;
+            margin-bottom: 32px;
+        }
+
+        .box-controls {
+            max-width: 700px;
+            margin: 0 auto 16px auto;  
+            display: flex;
+            justify-content: center;  
+            gap: 12px;                
+        }
+
+        .btn {
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            color: #fff;
+            background-color: #333;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn:hover {
+            background: #555;
+        }
+
+        .btn-lg {
+            font-size: 32px;
+            padding: 25px 42px;
+            min-width: 180px;
+        }
+
+        .btn-sm {
+            font-size: 20px;
+            padding: 10px 16px;
+            border-radius: 12px;
+        }
+
+        #textInputWrapper {
+            display: none;
+            margin: 20px auto;
+        }
+
+        #textInput {
+            font-size: 22px;
+            padding: 10px;
+            width: 60%;
+            margin-bottom: 20px;
+            border: 1.5px solid #ccc;
+            border-radius: 10px;
+        }
+
+        #sendTextBtn {
+            padding: 10px 20px;
+            font-size: 20px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 8px;
+            background-color:  #333;
+            color: white;
+            cursor: pointer;
+        }
+
+        .rescue-accordion {
+            width: 100%;
+            max-width: 700px;
+            margin: auto;
+            font-family: sans-serif;
+            text-align: left;
+        }
+
+        .box-item {
+            background: #333;
+            color: white;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            padding: 12px 18px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .box-item.active {
+            background: #555;
+        }
+
+        .box-item:hover {
+            background: #555;
+        }
+
+        .box-item h3 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .box-text {
+            display: none;
+            padding: 10px;
+            margin-top: 8px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            color: #000;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-left: 10px;
+            vertical-align: middle;
+            border: 1px solid #999;
+        }
+
+        .status-unknown { background-color: #999; }
+        .status-ok      { background-color: #27ae60; }
+        .status-bad     { background-color: #f1c40f; }
+        .status-critical{ background-color: #e74c3c; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        button, .tab-btn, .action-button {
+            user-select: none;
+        }
+
+        .box-item, .box-text {
+            user-select: none;
+        }
+
+        .upload-card{
+            background:#fff;
+            max-width:700px;
+            margin: 0 auto 28px auto;
+            padding: 18px 20px;
+            border-radius: 16px;
+            box-shadow: 0 2px 14px #e6e6e6;
+            text-align:center;
+            }
+
+        #imgFile{
+            font-size:16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="tab-bar">
+    <button class="tab-btn active" id="tab-led" onclick="showTab('led')">LED Anzeige</button>
+    <button class="tab-btn" id="tab-box" onclick="showTab('box')">Rescue Boxen</button>
+</div>
+
+<div class="tab-content active" id="tab-content-led">
+    <div id="textInputWrapper">
+        <input type="text" id="textInput" placeholder="Text für Matrixanzeige eingeben">
+        <button id="sendTextBtn" onclick="sendText()">Senden</button>
+    </div>
+
+    <div class="button-grid">
+        <button class="btn btn-lg" onclick="switchToAmbu()">✚ Rettung</button>
+        <button class="btn btn-lg" onclick="showTextInput()">💬 Text</button>
+        <button class="btn btn-lg" onclick="switchToParty()">✦ Party</button>
+        <button class="btn btn-lg" onclick="switchToNothing()">↺ Reset</button>
+    </div>
+
+    <div class="upload-card">
+        <h3 style="margin: 0 0 10px 0;">Custom Bild anzeigen</h3>
+
+        <input type="file" id="imgFile" accept="image/png,image/jpeg,image/webp,image/bmp,image/gif" />
+        <div id="previewWrap" style="margin-top: 14px; display:none;">
+            <img id="previewImg" style="max-width: 320px; border-radius: 10px; border: 1px solid #ccc;" />
+        </div>
+
+        <div style="margin-top: 14px;">
+            <button class="btn btn-sm" onclick="uploadAndShow()">Upload & Anzeigen</button>
+        </div>
+
+        <div id="uploadStatus" style="margin-top:10px; color:#333; font-size:16px;"></div>
+    </div>
+
+</div>
+
+<div class="tab-content" id="tab-content-box">
+    <div class="box-controls">
+        <button id="btnStartAssessment" class="btn btn-sm" onclick="startAssessmentFromGui()">Start</button>
+        <button class="btn btn-sm" onclick="resetBoxes()">Reset</button>
+    </div>
+    <div class="rescue-accordion">
+        <div class="box-item" onclick="toggleBox(1)">
+            <h3>Box 1 <span id="status1" class="status-indicator status-unknown"></span></h3>
+            <div class="box-text" id="text1">Warte auf Daten...</div>
+        </div>
+        <div class="box-item" onclick="toggleBox(2)">
+            <h3>Box 2 <span id="status2" class="status-indicator status-unknown"></span></h3>
+            <div class="box-text" id="text2">Warte auf Daten...</div>
+        </div>
+        <div class="box-item" onclick="toggleBox(3)">
+            <h3>Box 3 <span id="status3" class="status-indicator status-unknown"></span></h3>
+            <div class="box-text" id="text3">Warte auf Daten...</div>
+        </div>
+        <div class="box-item" onclick="toggleBox(4)">
+            <h3>Box 4 <span id="status4" class="status-indicator status-unknown"></span></h3>
+            <div class="box-text" id="text4">Warte auf Daten...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const RASPI_HOST = "10.0.0.49";
+    const serverIP = `http://${RASPI_HOST}:5001`;
+    const rosbridgeWS = `ws://${RASPI_HOST}:9090`;
+
+    function setStartEnabled(enabled) {
+    const b = document.getElementById("btnStartAssessment");
+    if (!b) return;
+    b.disabled = !enabled;
+    b.style.opacity = enabled ? "1" : "0.5";
+    b.style.cursor = enabled ? "pointer" : "not-allowed";
+    }
+    setStartEnabled(false);
+
+    function showTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        if(tab === 'led') {
+            document.getElementById('tab-led').classList.add('active');
+            document.getElementById('tab-content-led').classList.add('active');
+        } else {
+            document.getElementById('tab-box').classList.add('active');
+            document.getElementById('tab-content-box').classList.add('active');
+        }
+    }  
+
+    function switchToAmbu() {
+        hideTextInput();
+        fetch(`${serverIP}/set_mode/ambu`);
+    }
+
+    function showTextInput() {
+        document.getElementById("textInputWrapper").style.display = "block";
+        document.getElementById("textInput").focus();
+    }
+
+    function sendText() {
+        const text = document.getElementById("textInput").value.trim();
+        if (!text) return;
+        const encoded = encodeURIComponent(text);
+        fetch(`${serverIP}/set_mode/text?message=${encoded}`);
+        hideTextInput();
+    }
+
+    function switchToParty() {
+        hideTextInput();
+        fetch(`${serverIP}/set_mode/party`);
+    }
+
+    function switchToNothing() {
+        hideTextInput();
+        fetch(`${serverIP}/set_mode/nothing`);
+    }
+
+    function hideTextInput() {
+        document.getElementById("textInputWrapper").style.display = "none";
+        document.getElementById("textInput").value = "";
+    }
+
+    let openBox = null;
+
+    function toggleBox(id) {
+        if (openBox && openBox !== id) {
+            document.getElementById(`text${openBox}`).style.display = "none";
+            document.querySelector(`.box-item:nth-child(${openBox})`).classList.remove('active');
+        }
+
+        const current = document.getElementById(`text${id}`);
+        const isOpen = current.style.display === "block";
+
+        current.style.display = isOpen ? "none" : "block";
+        const currentBox = document.querySelector(`.box-item:nth-child(${id})`);
+        
+        if (isOpen) {
+            currentBox.classList.remove('active');
+            openBox = null;
+        } else {
+            currentBox.classList.add('active');
+            openBox = id;
+        }
+    }
+
+    function setActiveWithin(containerSelector, clickedBtn) {
+        const container = clickedBtn.closest(containerSelector);
+        if (!container) return;
+        container.querySelectorAll(".btn").forEach(b => b.classList.remove("active"));
+        clickedBtn.classList.add("active");
+    }
+
+    document.querySelectorAll(".button-grid .btn").forEach(btn => {
+        btn.addEventListener("click", () => setActiveWithin(".button-grid", btn));
+    });
+
+    document.querySelectorAll(".box-controls .btn").forEach(btn => {
+        btn.addEventListener("click", () => setActiveWithin(".box-controls", btn));
+    });
+
+    const imgFileEl = document.getElementById("imgFile");
+    const previewWrap = document.getElementById("previewWrap");
+    const previewImg = document.getElementById("previewImg");
+    const uploadStatus = document.getElementById("uploadStatus");
+
+    imgFileEl.addEventListener("change", () => {
+    const f = imgFileEl.files && imgFileEl.files[0];
+    if (!f) { previewWrap.style.display="none"; return; }
+    previewImg.src = URL.createObjectURL(f);
+    previewWrap.style.display = "block";
+    uploadStatus.textContent = "";
+    });
+
+    const MAX_UPLOAD_MB = 3;                
+    const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
+
+    const ALLOWED_MIME = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/bmp",
+    "image/gif"
+    ]);
+
+    async function uploadAndShow() {
+    const f = imgFileEl.files && imgFileEl.files[0];
+    if (!f) return;
+
+    hideTextInput();
+    uploadStatus.textContent = "";
+
+    if (!ALLOWED_MIME.has(f.type)) {
+        uploadStatus.textContent = "Nur Bilddateien erlaubt (JPG/PNG/WebP/BMP/GIF).";
+        return;
+    }
+
+    if (f.size > MAX_UPLOAD_BYTES) {
+        uploadStatus.textContent = `Datei zu groß. Maximal ${MAX_UPLOAD_MB} MB erlaubt.`;
+        return;
+    }
+
+    uploadStatus.textContent = "Upload läuft…";
+
+    const fd = new FormData();
+    fd.append("file", f);
+
+    try {
+        const res = await fetch(`${serverIP}/upload_image`, {
+        method: "POST",
+        body: fd
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+        uploadStatus.textContent = "Fehler: " + (data.detail || res.statusText);
+        return;
+        }
+
+        uploadStatus.textContent = "OK: " + (data.detail || "Bild angezeigt");
+    } catch (e) {
+        uploadStatus.textContent = "Netzwerkfehler: " + e;
+    }
+    }
+
+const ROSBRIDGE_WS = rosbridgeWS;
+
+const cycles = {
+  1: { lines: {}, lastStatus: "unknown", total: 15 },
+  2: { lines: {}, lastStatus: "unknown", total: 15 },
+  3: { lines: {}, lastStatus: "unknown", total: 15 },
+  4: { lines: {}, lastStatus: "unknown", total: 15 },
+};
+
+function parseAssessmentLine(line) {
+  if (!line) return null;
+
+  line = line.replace(/\r/g, "").trim();
+
+  const m = line.match(
+    // Beispiel: "cycle: 2 [3 / 15] Frage? → Antwort (Status: ok)"
+    /^cycle:\s*(\d+)\s+\[(\d+)\s*\/\s*(\d+)\]\s+(.+?)\s+(?:→|->)\s+(.+?)\s+\(Status:\s*([^)]+)\)\s*$/i
+  );
+  if (!m) return null;
+
+  return {
+    cycle: parseInt(m[1], 10),
+    index: parseInt(m[2], 10),
+    total: parseInt(m[3], 10),
+    question: m[4].trim(),
+    answer: m[5].trim(),
+    status: m[6].trim().toLowerCase(),
+  };
+}
+
+function renderCycleBox(cycleId) {
+  const state = cycles[cycleId];
+  const textEl = document.getElementById(`text${cycleId}`);
+  if (!textEl) return;
+
+  const lines = [];
+  for (let i = 1; i <= state.total; i++) {
+    if (state.lines[i]) lines.push(state.lines[i]);
+  }
+  textEl.textContent = lines.length ? lines.join("\n\n") : "Warte auf Daten...";
+}
+
+function setStatusIndicator(cycleId, status) {
+  const el = document.getElementById(`status${cycleId}`);
+  if (!el) return;
+
+  el.classList.remove("status-unknown", "status-ok", "status-bad", "status-critical");
+
+  if (status === "ok") el.classList.add("status-ok");
+  else if (status === "bad") el.classList.add("status-bad");
+  else if (status === "critical") el.classList.add("status-critical");
+  else el.classList.add("status-unknown");
+}
+
+function resetCycle(cycleId, total) {
+  cycles[cycleId].lines = {};
+  cycles[cycleId].total = total || 15;
+  cycles[cycleId].lastStatus = "unknown";
+  setStatusIndicator(cycleId, "unknown");
+  renderCycleBox(cycleId);
+}
+
+async function resetBoxes() {
+  for (let c = 1; c <= 4; c++) resetCycle(c, 15);
+
+  try {
+    await fetch(`${serverIP}/api/assessment/reset`, { method: "POST" });
+    console.log("Backend state reset");
+  } catch (e) {
+    console.log("Backend reset failed:", e);
+  }
+}
+
+let ros = null;
+let startAssessmentService = null;
+let assessmentTopic = null;
+let lastCycleFromRobot = 1;
+
+function startAssessmentFromGui() {
+  console.log("Start clicked. service=", startAssessmentService);
+
+  if (!startAssessmentService) {
+    alert("ROS noch nicht verbunden!");
+    return;
+  }
+
+  const request = new ROSLIB.ServiceRequest({});
+  startAssessmentService.callService(
+    request,
+    (res) => {
+      console.log("Service OK:", res);
+      alert(res.message || "OK");
+    },
+    (err) => {
+      console.error("Service FAIL:", err);
+      alert("Service call failed (siehe Konsole)");
+    }
+  );
+}
+
+async function loadStateFromFastApi() {
+  try {
+    const res = await fetch(`${serverIP}/api/assessment/state?ts=${Date.now()}`);
+    const data = await res.json();
+
+    if (!data || !data.cycles) return;
+
+    for (let c = 1; c <= 4; c++) {
+      const src = data.cycles[String(c)];
+      if (!src) continue;
+
+      cycles[c].lines = src.lines || {};
+      cycles[c].lastStatus = src.lastStatus || "unknown";
+      cycles[c].total = src.total || 15;
+
+      setStatusIndicator(c, cycles[c].lastStatus);
+      renderCycleBox(c);
+    }
+  } catch (e) {
+    console.log("State load failed:", e);
+  }
+}
+
+function startRosSubscribe() {
+  if (typeof ROSLIB === "undefined") {
+    console.log("ROSLIB nicht geladen!");
+    return;
+  }
+
+  try { ros?.close(); } catch (e) {}
+
+  ros = new ROSLIB.Ros({ url: ROSBRIDGE_WS });
+
+  ros.on("connection", () => {
+    console.log("ROS connected:", ROSBRIDGE_WS);
+
+    assessmentTopic = new ROSLIB.Topic({
+        ros,
+        name: "/assessment_protocol",
+        messageType: "std_msgs/msg/String",
+    });
+
+    startAssessmentService = new ROSLIB.Service({
+        ros,
+        name: "/start_assessment",
+        serviceType: "std_srvs/srv/Trigger",
+    });
+
+    const currentCycleTopic = new ROSLIB.Topic({
+        ros,
+        name: "/current_cycle",
+        messageType: "std_msgs/msg/Int32",
+    });
+
+    const finalStatusTopic = new ROSLIB.Topic({
+        ros,
+        name: "/final_status",
+        messageType: "std_msgs/msg/Int32",
+    });
+
+    currentCycleTopic.subscribe((msg) => {
+        lastCycleFromRobot = parseInt(msg.data, 10) || 1;
+    });
+
+    finalStatusTopic.subscribe((msg) => {
+        const s = parseInt(msg.data, 10);
+        const status = (s === 0) ? "ok" : (s === 1) ? "bad" : "critical";
+        const c = lastCycleFromRobot;
+
+        if (!cycles[c]) return;
+
+        const keys = Object.keys(cycles[c].lines)
+            .map(k => parseInt(k, 10))
+            .filter(n => Number.isFinite(n));
+
+        const maxIdx = keys.length ? Math.max(...keys) : 0;
+        const nextIdx = maxIdx + 1;
+
+        cycles[c].lines[nextIdx] = `Abfrage beendet (Status: ${status})`;
+        cycles[c].total = Math.max(cycles[c].total || 15, nextIdx);
+        cycles[c].lastStatus = status;
+
+        setStatusIndicator(c, status);
+        renderCycleBox(c);
+    });
+
+    assessmentTopic.subscribe((msg) => {
+        const parsed = parseAssessmentLine(msg.data);
+        if (!parsed) return;
+
+        const { cycle, index, total, question, answer, status } = parsed;
+        if (!cycles[cycle]) return;
+
+        if (cycle === 1 && index === 1) resetBoxes();
+
+        cycles[cycle].lines[index] = `${index}. ${question}\n→ ${answer}`;
+        cycles[cycle].total = total;
+        cycles[cycle].lastStatus = status;
+
+        setStatusIndicator(cycle, status);
+        renderCycleBox(cycle);
+    });
+
+    setStartEnabled(true);
+});
+
+  ros.on("error", (e) => console.log("ROS error:", e));
+
+  ros.on("close", () => {
+    console.log("ROS closed - reconnect in 2s");
+
+    try { assessmentTopic?.unsubscribe(); } catch (e) {}
+    assessmentTopic = null;
+
+    startAssessmentService = null;
+    setStartEnabled(false);
+
+    setTimeout(startRosSubscribe, 2000);
+  });
+}
+
+window.addEventListener("load", async () => {
+    await loadStateFromFastApi();  
+    startRosSubscribe();        
+});
+</script>
+</body>
+</html>
