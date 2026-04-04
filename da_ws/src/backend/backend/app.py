@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 import os, glob, io, tempfile, threading, time
 import serial
@@ -10,6 +11,9 @@ from pathlib import Path
 import json
 
 app = FastAPI()
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+GUI_DIR = BASE_DIR / "GUI"
 
 app.add_middleware(
     CORSMiddleware,
@@ -214,3 +218,4 @@ def reset_assessment_state():
     save_assessment_state_atomic(state)
     return {"ok": True}
 
+app.mount("/", StaticFiles(directory=GUI_DIR, html=True), name="gui")
