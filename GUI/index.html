@@ -259,9 +259,9 @@
 </div>
 
 <script>
-    const RASPI_HOST = "10.0.0.82";
-    const serverIP = `http://${RASPI_HOST}:5001`;
-    const rosbridgeWS = `ws://${RASPI_HOST}:9090`;
+    //const RASPI_HOST = "10.0.0.82";
+    //const serverIP = `http://${RASPI_HOST}:5001`;
+    //const rosbridgeWS = `ws://${RASPI_HOST}:9090`;
 
     function setStartEnabled(enabled) {
     const b = document.getElementById("btnStartAssessment");
@@ -286,7 +286,8 @@
 
     function switchToAmbu() {
         hideTextInput();
-        fetch(`${serverIP}/set_mode/ambu`);
+        //fetch(`${serverIP}/set_mode/ambu`);
+        fetch(`/set_mode/ambu`);
     }
 
     function showTextInput() {
@@ -298,18 +299,21 @@
         const text = document.getElementById("textInput").value.trim();
         if (!text) return;
         const encoded = encodeURIComponent(text);
-        fetch(`${serverIP}/set_mode/text?message=${encoded}`);
+        //fetch(`${serverIP}/set_mode/text?message=${encoded}`);
+        fetch(`/set_mode/text?message=${encoded}`);
         hideTextInput();
     }
 
     function switchToParty() {
         hideTextInput();
-        fetch(`${serverIP}/set_mode/party`);
+        //fetch(`${serverIP}/set_mode/party`);
+        fetch(`/set_mode/party`);
     }
 
     function switchToNothing() {
         hideTextInput();
-        fetch(`${serverIP}/set_mode/nothing`);
+        //fetch(`${serverIP}/set_mode/nothing`);
+        fetch(`/set_mode/nothing`);
     }
 
     function hideTextInput() {
@@ -402,7 +406,12 @@
     fd.append("file", f);
 
     try {
-        const res = await fetch(`${serverIP}/upload_image`, {
+        // const res = await fetch(`${serverIP}/upload_image`, {
+        // method: "POST",
+        // body: fd
+        // });
+
+        const res = await fetch(`/upload_image`, {
         method: "POST",
         body: fd
         });
@@ -419,7 +428,8 @@
     }
     }
 
-const ROSBRIDGE_WS = rosbridgeWS;
+//const ROSBRIDGE_WS = rosbridgeWS;
+const ROSBRIDGE_WS = `ws://${window.location.hostname}:9090`;
 
 const cycles = {
   1: { lines: {}, lastStatus: "unknown", total: 15 },
@@ -485,7 +495,8 @@ async function resetBoxes() {
   for (let c = 1; c <= 4; c++) resetCycle(c, 15);
 
   try {
-    await fetch(`${serverIP}/api/assessment/reset`, { method: "POST" });
+    // await fetch(`${serverIP}/api/assessment/reset`, { method: "POST" });
+    await fetch(`/api/assessment/reset`, { method: "POST" });
     console.log("Backend state reset");
   } catch (e) {
     console.log("Backend reset failed:", e);
@@ -521,7 +532,8 @@ function startAssessmentFromGui() {
 
 async function loadStateFromFastApi() {
   try {
-    const res = await fetch(`${serverIP}/api/assessment/state?ts=${Date.now()}`);
+    //const res = await fetch(`${serverIP}/api/assessment/state?ts=${Date.now()}`);
+    const res = await fetch(`/api/assessment/state?ts=${Date.now()}`);
     const data = await res.json();
 
     if (!data || !data.cycles) return;

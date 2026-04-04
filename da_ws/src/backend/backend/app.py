@@ -12,7 +12,7 @@ import json
 
 app = FastAPI()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parents[4]
 GUI_DIR = BASE_DIR / "GUI"
 
 app.add_middleware(
